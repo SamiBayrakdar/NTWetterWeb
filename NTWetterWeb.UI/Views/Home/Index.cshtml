@@ -1,0 +1,171 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="container-fluid page-body-wrapper full-page-wrapper">
+    <div class="content-wrapper d-flex align-items-center auth px-0">
+
+        <div class="row w-100 mx-0">
+            <div class="col-lg-8 mx-auto">
+                <div class="py-2 px-4 px-sm-5">
+                    <div class="text-center">
+                        <h3 style="color:#004085">Stadtnamen eingeben</h3>
+                    </div>
+                    <form class="pt-2">
+                        <div class="row">
+                            <div class="col-8">
+                                <div class="form-group">
+                                    <input type="text" class="form-control form-control-lg" id="tStadtname" placeholder="Stadtname" required>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="mb-2">
+                                    <button type="button" class="btn btn-primary btn-lg" onclick="checkGetwetter()">Stadt suchen</button>
+
+                                </div>
+                            </div>
+                        </div>
+
+                    </form>
+                   
+                    <div class="text-center p-2">
+                        <h2> Aktuelle Wetterlage in <b id="dCity">-</b>,<b id="dCount"></b>  </h2>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="row">
+                                <div class="col-12">
+                                    <p><b>Temperatur:</b> <span id="dTemperatur">-</span> &#176;C</p>
+                                </div>
+                                <div class="col-12">
+                                    <p><b>LuftDruck:</b> <span id="dLuftDruck">-</span> hPa</p>
+                                </div>
+                                <div class="col-12">
+                                    <p><b>Feuchtigkeit:</b> <span id="dFeuchtigkeit">-</span>%</p>
+                                </div>
+                                <div class="col-12">
+                                    <p><b>Geringste Temperatur:</b> <span id="dgTemperatur">-</span> &#176;C</p>
+                                </div>
+                                <div class="col-12">
+                                    <p><b>Höchste Temperatur:</b> <span id="dhTemperatur">-</span> &#176;C</p>
+                                </div>
+                                <div class="col-12">
+                                    <p><b>Windgeschwindigkeit:</b> <span id="dhWind">-</span> m/s</p>
+                                </div>
+                                <div class="col-12">
+                                    <p><b>Windrichtung:</b> <span id="dhWindR">-</span> &#176;</p>
+                                </div>
+
+
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="row">
+                                <div class="col-12">
+                                    <p><img id="imgWeatherIconUrl" src="http://openweathermap.org/img/w/04d.png" title="Weather Icon" /> <span id="dstate">erferverv</span></p>
+                                </div>
+
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+
+</div>
+
+@section Scripts{
+
+
+
+
+    <script>
+        $().ready(function () {
+          getLocalname();
+        });
+
+        function checkGetwetter() {
+            var ltStadtname = $("#tStadtname").val();
+            getWetter(ltStadtname);
+        }
+
+        function getLocalname() {
+
+            var requestUrl = "http://ip-api.com/json";
+              $.ajax({
+                 url: requestUrl,
+                 type: 'GET',
+                 success: function(json)
+                    {
+                   
+
+                     getWetter(json.city);
+                    },
+                    error: function(err)
+                    {
+                      console.log("Request failed, error= " + err);
+                    }
+
+              });          
+        }
+
+        function getWetter(ltStadtname) {
+
+            
+            if (ltStadtname.length < 1 || ltStadtname == "") {
+                return;
+            }
+           
+            $.ajax({
+                url: '@Url.Action("WetterGet", "Home")' + '?city=' + ltStadtname,
+                type: 'get',
+                dataType: 'json',
+                success: function (result) {
+                    if (result == "1") {
+                        swal("Stadt nicht gefunden!");
+                        $('#dTemperatur').text(" - ");
+                        $('#dLuftDruck').text(" - ");
+                        $('#dFeuchtigkeit').text(" - ");
+                        $('#dgTemperatur').text(" - ");
+                        $('#dhTemperatur').text(" - ");
+                        $('#dhWind').text(" - ");
+                        $('#dhWindR').text(" - ");
+
+                        $('#dCity').text(" - ");
+                        $('#dCount').text(" - ");
+
+                        $("#imgWeatherIconUrl").attr("src", "http://openweathermap.org/img/w/50d.png");
+                        $('#dstate').text(" - ");
+                    } else if (result) {
+                       
+                        $('#dTemperatur').text((result.main.temp - 273, 15));
+                        $('#dLuftDruck').text(result.main.pressure);
+                        $('#dFeuchtigkeit').text(result.main.humidity);
+                        $('#dgTemperatur').text((result.main.temp_min - 273, 15));
+                        $('#dhTemperatur').text((result.main.temp_max - 273, 15));
+                        $('#dhWind').text(result.wind.speed);
+                        $('#dhWindR').text(result.wind.deg);
+
+                        $('#dCity').text(result.city.name);
+                        $('#dCount').text(result.city.country);
+
+                        $("#imgWeatherIconUrl").attr("src", "http://openweathermap.org/img/w/" + result.weather[0].icon + ".png");
+                        $('#dstate').text(result.weather[0].description);
+                    }
+
+                },
+                error: function (err) {
+                    console.log(err.statusText);
+                   /* console.log(err.statusText);*/
+                }
+
+            })
+
+        }
+      
+    </script>
+}
